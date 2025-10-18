@@ -1,54 +1,71 @@
-#include <stdio.h>
-#define MAX_SIZE 20
+#include <pilha.h>
 
+Pilha* criarPilha(Pilha *p, int capacidade){
+    Pilha* p = (Pilha*)malloc(sizeof(Pilha));
+    if (p == NULL) return NULL;
 
-typedef struct{
-
-    int itens[MAX_SIZE];
-    int topo;
-
-} Pilha;
-
-
-void inicializarPilha(Pilha *bloco){
-    bloco->topo = -1;
-}
-
-int pilhaCheia(Pilha *bloco){
-    return bloco->topo == MAX_SIZE - 1;
-}
-
-int pilhaVazia(Pilha *bloco){
-    return bloco->topo == -1;
-}
-
-void empilhar(Pilha *bloco, int valor){
-    if(pilhaCheia(bloco)){
-        printf("\n[Erro] Pilha cheia. Nao e possivel empilhar mais elementos.\n");
-        return;
-    }else{
-        bloco->itens[++(bloco->topo)] = valor;
-        printf("\nElemento %d empilhado com sucesso.\n", valor);
+    p->registro = (Paciente**)malloc(capacidade*sizeof(Paciente*));
+    if(p->registro == NULL){
+        free(p);
+        return NULL;
     }
+    p->topo = -1;
+    p->capacidade = capacidade;
+
+    return p;
 }
 
-int desempilhar(Pilha *bloco){
-    if(pilhaVazia(bloco)){
-        printf("\n[Erro] Pilha vazia. Nao e possivel desempilhar elementos.\n");
-        return -1; 
-    }else{
-        return bloco->itens[(bloco->topo)--];
+int sePilhaVazia(Pilha *p){
+    if( p == NULL || p->topo == -1 ) {
+        return 1; 
     }
+    return 0;   
 }
 
+int sePilhaCheia(Pilha *p){
+    if( p != NULL && p->topo == p->capacidade - 1 ) {
+            return 1; 
+        }
+    return 0; 
+}
 
-
-void listarHistorico(Pilha *bloco){
-    printf("\n\n~~~~~~~~~ Últimos Atendimentos ~~~~~~~~~\n\n");
-
-    if(pilhaVazia(bloco)){
-        printf("\nNenhum atendimento realizado ainda.\n");
+void empilhar(Pilha *p, Paciente *atendido){
+    if (p == NULL || sePilhaCheia(p)){
+        printf("\n>>ERRO: Pilha cheia ou não inicializada.\n");
         return;
     }
+	p->topo++;
+	p->registro [p->topo] = atendido;
+    printf("\n Paciente %s adicionado ao Histórico(Posição: %d).\n", atendido->nome, p->topo);
+
 }
+
+Pilha* desempilhar (Pilha *p){
+    if (p == NULL || sePilhaVazia(p)) {
+        printf("\n> Nao ha pacientes no Historico para remover.\n");
+        return NULL;
+    }
+
+    Paciente* removido = p->registro[p->topo];
+    p->topo--;
+    printf("\n<< Paciente %s removido do Histórico. >>\n", removido->nome);
+    return removido;
+
+}
+
+float rvisualizarHistorico(Pilha *p){
+    printf("\n\n~~~~~~~~~~~ HISTÓRICO DE ATENDIMENTO ~~~~~~~~~~~\n");
+    if (p == NULL || sePilhaVazia(p)) {
+        printf("> O Historico esta vazio.\n");
+        return;
+    }
     
+    printf("Capacidade: %d | Total de Atendidos: %d\n", p->capacidade, p->topo + 1);
+    
+    // Percorre a pilha do topo (mais recente) até a base (mais antigo)
+    for (int i = p->topo; i >= 0; i--) {
+        Paciente *atendido = p->registro[i];
+        printf("  [%d] NOME: %s, CPF: %s, Prioridade: %s\n", 
+               i + 1, atendido->nome, atendido->CPF, atendido->prioridade);
+    }
+}
