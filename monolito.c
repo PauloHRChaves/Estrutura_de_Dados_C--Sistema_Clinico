@@ -7,13 +7,13 @@
 //                       LISTA ENCADEADA
 //---------------------------------------------------------------
 
-typedef struct paciente{
+typedef struct{
     char nome[51];
     int idade;
     char CPF[12];
     char prioridade[4];
 
-    struct paciente *prox;
+    struct Paciente *prox;
 } Paciente;
 
 int listaVazia(Paciente *lista) {
@@ -42,7 +42,6 @@ Paciente* inserirElementoComeco(Paciente* lista, char nome[], int idade, char cp
     novoNo->prox = lista;
     return novoNo;
 }
-
 
 //---------------------------------------------------------------
 //                           FILA
@@ -100,7 +99,7 @@ void enfileirarSimples(Fila* f, Paciente* novoNo) {
     f->tamanho++;
 }
 
-void EnfileirarDuplo(FilaDuplaPrioridade* fd, char nome[], int idade, char cpf[]){
+void enfileirarDuplo(FilaDuplaPrioridade* fd, char nome[], int idade, char cpf[]){
     Paciente* novoNo = criarNo(nome, idade, cpf);
 
     if (novoNo == NULL) return;
@@ -112,18 +111,85 @@ void EnfileirarDuplo(FilaDuplaPrioridade* fd, char nome[], int idade, char cpf[]
     }
 }
 
-
-// FAZER A FUNÇÃO PARA CHAMAR PACIENTES
-
 //---------------------------------------------------------------
 //                           PILHA
 //---------------------------------------------------------------
 
+typedef struct{
+	int topo; 
+	int capacidade;
+	Paciente **registro;
+} Pilha;
 
-// HISTORICO DE ATENDIMENTO
-// REMOVER PACIENTE DO HISTORICO
+Pilha* criarPilha(Pilha *p, int capacidade){
+    Pilha* p = (Pilha*)malloc(sizeof(Pilha));
+    if (p == NULL) return NULL;
 
+    p->registro = (Paciente**)malloc(capacidade*sizeof(Paciente*));
+    if(p->registro == NULL){
+        free(p);
+        return NULL;
+    }
+    p->topo = -1;
+    p->capacidade = capacidade;
 
+    return p;
+}
+
+int sePilhaVazia (Pilha *p){
+    if( p == NULL || p->topo == -1 ) {
+        return 1; 
+    }
+    return 0;   
+}
+
+int sePilhaCheia (Pilha *p){
+    if( p != NULL && p->topo == p->capacidade - 1 ) {
+            return 1; 
+        }
+    return 0; 
+}
+
+void empilhar (Pilha *p, Paciente *atendido){
+    if (p == NULL || sePilhaCheia(p)){
+        printf("\n>>ERRO: Pilha cheia ou não inicializada.\n");
+        return;
+    }
+	p->topo++;
+	p->registro [p->topo] = atendido;
+    printf("\n Paciente %s adicionado ao Histórico(Posição: %d).\n", atendido->nome, p->topo);
+
+}
+
+Pilha* desempilhar (Pilha *p ){
+    if (p == NULL || sePilhaVazia(p)) {
+        printf("\n> Nao ha pacientes no Historico para remover.\n");
+        return NULL;
+    }
+
+    Paciente* removido = p->registro[p->topo];
+    p->topo--;
+    printf("\n<< Paciente %s removido do Histórico. >>\n", removido->nome);
+    return removido;
+
+}
+
+float visualizarHistorico(Pilha *p){
+    printf("\n\n~~~~~~~~~~~ HISTÓRICO DE ATENDIMENTO ~~~~~~~~~~~\n");
+    if (p == NULL || sePilhaVazia(p)) {
+        printf("> O Historico esta vazio.\n");
+        return;
+    }
+    
+    printf("Capacidade: %d | Total de Atendidos: %d\n", p->capacidade, p->topo + 1);
+    
+    // Percorre a pilha do topo (mais recente) até a base (mais antigo)
+    for (int i = p->topo; i >= 0; i--) {
+        Paciente *atendido = p->registro[i];
+        printf("  [%d] NOME: %s, CPF: %s, Prioridade: %s\n", 
+               i + 1, atendido->nome, atendido->CPF, atendido->prioridade);
+    }
+}
 
 //---------------------------------------------------------------
 //                       PARTE LÓGICA
@@ -134,7 +200,7 @@ void menu(){
     printf("(1). Cadastrar Paciente.\n");
     printf("(2). Pacientes Cadastrados.\n");
     printf("(3). Buscar por CPF.\n");
-    printf("(4). Mostrar fila de atendimento.\n");
+    printf("(4). Mostrar Fila de Atendimento.\n"); //Mostrar Fila de atendimento, e solicitar inserção por CPF.
     printf("(5). Historico de atendimento.\n");
     printf("(6). Sair.\n");
     printf("\nSelecione a opcao para continuar: ");
@@ -151,9 +217,9 @@ Paciente*cadastrar(Paciente *lista, FilaDuplaPrioridade** gerenciadorFila){
         *gerenciadorFila = criarFilaDupla();
     }
 
-        printf("Digite o nome: ");
-        fgets(nome, 51, stdin);
-        nome[strcspn(nome, "\n")] = 0;
+    printf("Digite o nome: ");
+    fgets(nome, 51, stdin);
+    nome[strcspn(nome, "\n")] = 0;
 
     printf("Digite a idade: ");
     scanf("%d", &idade);
@@ -218,6 +284,7 @@ Paciente* buscarCpf(Paciente*lista){
 }
 
 void visualizarFilaSimples(Fila* f, const char* titulo) { 
+
     printf("\n\n--- %s (Tamanho: %d) ---\n", titulo, f->tamanho);
     
     Paciente *atual = f->inicio;
@@ -236,11 +303,9 @@ void visualizarFilaDupla(FilaDuplaPrioridade* fd) {
         printf("\n> O sistema de filas nao foi inicializado.\n");
         return;
     }
-    
     visualizarFilaSimples(fd->filaPrioridade, "FILA DE PRIORIDADE");
     visualizarFilaSimples(fd->filaNormal, "FILA NORMAL");
 }
-
 
 //---------------------------------------------------------------
 //                        CHAMADAS
@@ -249,7 +314,9 @@ void visualizarFilaDupla(FilaDuplaPrioridade* fd) {
 void iniciarSistema(){
     int option;
     Paciente *listaDePacientes = NULL;
-    FilaDuplaPrioridade* gerenciadorFila=NULL;
+    Fila* gerenciadorDeFila = NULL;
+    FilaDuplaPrioridade* gerenciadorDeFilaDupla=NULL;
+    Pilha* gerenciadorPilha=NULL;
     
     do{
         menu();
@@ -258,24 +325,23 @@ void iniciarSistema(){
 
         switch (option){
         case 1:
-            listaDePacientes = cadastrar(listaDePacientes, &gerenciadorFila);
+            listaDePacientes = cadastrar(listaDePacientes, &gerenciadorDeFilaDupla);
             break;
         case 2:
-            buscarPaciente(listaDePacientes); 
-            break;
-        case 3:
-            visualizarPacientes(listaDePacientes);
+            visualizarPacientes(listaDePacientes); 
             break;
         case 3:
             buscarCpf(listaDePacientes);
             break;
         case 4:
-            visualizarFilaDupla(gerenciadorFila);
-            break; 
+            chamarParaFila(gerenciadorDeFila, );
+            break;
         case 5:
+            break; 
+        case 6:
             printf("\nNADA\n");
             break;    
-        case 6:
+        case 7:
             printf("\nSaindo do programa...\n");
             break;
         default:

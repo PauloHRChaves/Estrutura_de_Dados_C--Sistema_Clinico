@@ -55,11 +55,6 @@ typedef struct {
     int tamanho;
 } Fila;
 
-typedef struct {
-    Fila *filaPrioridade;
-    Fila *filaNormal;
-} FilaDuplaPrioridade;
-
 Fila* criarFila() {
     Fila* fila = (Fila*)malloc(sizeof(Fila));
 
@@ -68,26 +63,6 @@ Fila* criarFila() {
     fila->tamanho=0;   
     
     return fila;
-}
-
-FilaDuplaPrioridade* criarFilaDupla() {
-    FilaDuplaPrioridade* fd = (FilaDuplaPrioridade*)malloc(sizeof(FilaDuplaPrioridade));
-    
-    if (fd == NULL) {
-        return NULL;
-    }
-    
-    fd->filaPrioridade = criarFila();
-    fd->filaNormal = criarFila();
-    
-    if (fd->filaPrioridade == NULL || fd->filaNormal == NULL) {
-        if (fd->filaPrioridade) free(fd->filaPrioridade);
-        if (fd->filaNormal) free(fd->filaNormal);
-        free(fd);
-        return NULL;
-    }
-    
-    return fd;
 }
 
 int enfileirarSimples(Fila* f, Paciente* novoNo) {
@@ -106,19 +81,25 @@ int enfileirarSimples(Fila* f, Paciente* novoNo) {
     return 1;
 }
 
-void enfileirarDuplo(FilaDuplaPrioridade* fd, char nome[], int idade, char cpf[]){
-    Paciente* novoNo = criarNo(nome, idade, cpf);
-
-    if (novoNo == NULL) return;
-
-    if (strcmp(novoNo->prioridade, "Sim") == 0) {
-        enfileirarSimples(fd->filaPrioridade, novoNo);
-    } else {
-        enfileirarSimples(fd->filaNormal, novoNo);
+Paciente* desenfileirarSimples(Fila* f) {
+    if (f == NULL || f->inicio == NULL) {
+        printf("\n> Fila de atendimento vazia.\n");
+        return NULL;
     }
-}
 
-//FAZER A FUNÇÃO PARA CHAMAR PACIENTES
+    Paciente* removido = f->inicio;
+    f->inicio = f->inicio->prox; // O início passa a ser o próximo elemento
+
+    // Se a fila ficou vazia após a remoção, o fim também deve ser NULL
+    if (f->inicio == NULL) {
+        f->fim = NULL;
+    }
+
+    f->tamanho--;
+    
+    printf("\n<< Paciente %s removido da Fila. >>\n", removido->nome);
+    return removido;
+}
 
 //---------------------------------------------------------------
 //                           PILHA
@@ -159,34 +140,39 @@ int sePilhaCheia (Pilha *p){
     return 0; 
 }
 
-void empilhar (Pilha *p, Paciente *atendido){
-    if (p == NULL || sePilhaCheia(p)){
-        printf("\n>>ERRO: Pilha cheia ou não inicializada.\n");
-        return;
-    }
-	p->topo++;
-	p->registro [p->topo] = atendido;
-    printf("\n Paciente %s adicionado ao Histórico(Posição: %d).\n", atendido->nome, p->topo);
-
-}
-
-Paciente* desempilhar (Pilha *p ){
-    if (p == NULL || sePilhaVazia(p)) {
-        printf("\n> Nao ha pacientes no Historico para remover.\n");
+Pilha* empilhar (Pilha *p, Paciente *atendido){
+    if (p == NULL){
+        printf("\n>>ERRO: Pilha não inicializada.\n");
         return NULL;
     }
 
-    Paciente* removido = p->registro[p->topo];
-    p->topo--;
-    printf("\n<< Paciente %s removido do Histórico. >>\n", removido->nome);
-    return removido;
+    if (sePilhaCheia(p)){
+        printf("\n>>ATENÇÃO: Histórico cheio (Capacidade %d). O paciente mais antigo será removido para inserir o novo.\n", p->capacidade);
+        
+        Paciente* maisAntigo = p->registro[0];
+        printf("<< Paciente %s (Mais Antigo) removido permanentemente do Histórico. >>\n", maisAntigo->nome);
+        free(maisAntigo); 
+        
+
+        for (int i = 0; i < p->capacidade - 1; i++) {
+            p->registro[i] = p->registro[i + 1];
+        }
+
+    } else {
+        p->topo++;
+    }
+
+	p->registro [p->topo] = atendido;
+    printf("\n Paciente %s adicionado ao Histórico(Posição: %d).\n", 
+        atendido->nome, p->topo+1);
 
 }
 
 void visualizarHistorico(Pilha *p){
     printf("\n\n~~~~~~~~~~~ HISTÓRICO DE ATENDIMENTO ~~~~~~~~~~~\n");
+    // Verifica se a pilha existe ou está vazia.
     if (p == NULL || sePilhaVazia(p)) {
-        printf("> O Historico esta vazio.\n");
+        printf("\n> O Historico esta vazio.\n");
         return;
     }
     
@@ -195,9 +181,10 @@ void visualizarHistorico(Pilha *p){
     // Percorre a pilha do topo (mais recente) até a base (mais antigo)
     for (int i = p->topo; i >= 0; i--) {
         Paciente *atendido = p->registro[i];
-        printf("  [%d] NOME: %s, CPF: %s, Prioridade: %s\n", 
-               i + 1, atendido->nome, atendido->CPF, atendido->prioridade);
+        printf("[%d] NOME: %s, CPF: %s, Prioridade: %s\n", 
+                i, atendido->nome, atendido->CPF, atendido->prioridade);
     }
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 }
 
 //---------------------------------------------------------------
@@ -210,8 +197,9 @@ void menu(){
     printf("(2). Pacientes Cadastrados.\n");
     printf("(3). Buscar por CPF.\n");
     printf("(4). Fila de atendimento.\n"); //Mostrar Fila de atendimento, e solicitar inserção por CPF.
-    printf("(5). Historico de atendimento.\n");
-    printf("(6). Sair.\n");
+    printf("(5). Finalizar atendimento.\n");
+    printf("(6). Historico de atendimento.\n");    
+    printf("(7). Sair.\n");
     printf("\nSelecione a opcao para continuar: ");
 }
 
@@ -221,8 +209,6 @@ Paciente*cadastrar(Paciente *lista){
     char nome[51];
     int idade;
     char cpf[12];
-
-
 
     printf("Digite o nome: ");
     fgets(nome, 51, stdin);
@@ -235,11 +221,11 @@ Paciente*cadastrar(Paciente *lista){
     printf("Digite o CPF (11 digitos): ");
     fgets(cpf, 12, stdin);
     cpf[strcspn(cpf, "\n")] = 0;
-    /*
+    
     if (strlen(cpf) != 11){
         printf("\nERRO: O CPF deve ter 11 digitos. Cadastro cancelado.\n");
         return lista;
-    }*/
+    }
 
     lista = inserirElementoComeco(lista, nome, idade, cpf);
     //enfileirarDuplo(*gerenciadorDeFilaDupla, nome, idade, cpf); 
@@ -256,8 +242,10 @@ void visualizarPacientes(Paciente *lista){
     }
     else{
         Paciente *temp = lista;
+        int i = 1;
         while (temp != NULL){
-            printf("\n--- %s ---\n", temp->nome);
+            printf("\n------- [%dº Paciente] -------", i++);
+            printf("\nNome: %s ---\n", temp->nome);
             printf("Idade: %d\n", temp->idade);
             printf("CPF: %s\n", temp->CPF);
             printf("Prioridade: %s\n", temp->prioridade);
@@ -268,30 +256,64 @@ void visualizarPacientes(Paciente *lista){
 
 Paciente* buscarCpf(Paciente*lista){
     char buscacpf[12];
+    int condition;
 
-    printf("\n\n~~~~~~~~~~~~ BUSCAR POR CPF ~~~~~~~~~~~~\n\n");
-    printf("Digite o CPF (11 digitos): ");
-    fgets(buscacpf, 12, stdin);
-    buscacpf[strcspn(buscacpf, "\n")] = 0;
+    printf("\n\n~~~~~~~~~~~~ BUSCAR POR PACIENTE ~~~~~~~~~~~~\n\n");
 
-    Paciente *temp = lista;
-    while (temp != NULL) {
-        if (strcmp(temp->CPF, buscacpf) == 0) {
-            
-            printf("\n--- Paciente %s:\n", temp->CPF);
-            printf("Nome: %s\n", temp->nome);
-            printf("Idade: %d\n", temp->idade);
-            printf("Prioridade: %s\n", temp->prioridade);
-            
-            return temp;
-        }
-        temp = temp->prox;
-    }
-    printf("\n> CPF nao encontrado ou inexistente\n", buscacpf);
+    if (listaVazia(lista)){
+
+    printf("\n\n------------------------------");
+    printf("\n\nNão há paciente cadastrado...\n");
+    printf("\n--------------------------------");
     return NULL;
+
+    }
+
+    do{
+            
+        printf("Digite o CPF (11 digitos): ");
+        fgets(buscacpf, 12, stdin);
+        buscacpf[strcspn(buscacpf, "\n")] = 0;
+
+        Paciente *temp = lista; //Define um ponteiro para a lista. 
+        int posicao = 0;
+        while (temp != NULL) {
+            if (strcmp(temp->CPF, buscacpf) == 0) {
+                
+                printf("\n--- [%d]Paciente ---\n", posicao);
+                printf("Nome: %s\n", temp->nome);
+                printf("Idade: %d\n", temp->idade);
+                printf("Prioridade: %s\n", temp->prioridade);
+                
+                return temp;
+            }
+            temp = temp->prox;
+            posicao++;
+        }
+
+        if (temp == NULL){
+            printf("\n> CPF nao encontrado ou inexistente\n", buscacpf);
+            return NULL;
+        } 
+
+        printf("\nDeseja buscar outro paciente?\n");
+        printf("(1). Sim -- (2). Não: ");
+        scanf("%d", &condition);
+        while (getchar() != '\n');
+        printf("%d", condition);
+
+
+        if (condition == 1){
+            continue;
+        } else if (condition != 2){
+            printf("\n Retornando ao menu principal...\n");
+            break;
+        } 
+    } while (condition == 1); 
+
 }
 
-void visualizarFilaSimples(Fila* f, const char* title) { 
+void visualizarFilaSimples(Fila* f) { 
     printf("\n\n---------------------- (Pacientes na fila: %d) ----------------------\n", f->tamanho);
     
     Paciente *atual = f->inicio;
@@ -307,117 +329,118 @@ void visualizarFilaSimples(Fila* f, const char* title) {
 Fila* chamarParaFila(Fila* f, Paciente* lista){
 
     char cpf[12];
+    char input_condition[10]; // Buffer para ler a opção (1 ou 2) com fgets
     int condition;
-    int posicao = 0;
-    Paciente* paciente;
-
-
-    printf("\n ======================== FILA DE ATENDIMENTO ========================\n");
+    
+    printf("\n ======================== CHAMAR PARA FILA ========================\n");
 
     if (f == NULL){
-        printf("\n >> Fila de Atendimento vazia, inicializando..\n");
-        f = criarFila();
+        printf("\n >> ERRO: Fila de Atendimento não inicializada.\n");
+        return f;
     }
 
-    visualizarFilaSimples(f, "");
+    visualizarFilaSimples(f);
+
+    if (listaVazia(lista)) {
+        printf("\n> Não há pacientes cadastrados para chamar.\n");
+        return f;
+    }
+    
 
     do{
-
-        Paciente *temp = lista;
-        paciente = NULL;
     
-        printf("\nDeseja chamar um paciente?\n");
-        printf("(1). Sim -- (2). Não:");
-        scanf("%d", &condition);
-        while (getchar() != '\n');
+        printf("\nDeseja chamar um paciente para a fila?\n");
+        printf("(1). Sim -- (2). Não: ");
+            
+            // **SOLUÇÃO DO PROBLEMA DE BUFFER: Usar fgets para ler a opção.**
+        if (fgets(input_condition, 10, stdin) == NULL) {
+                condition = 2; // Assume "Não" em caso de erro de leitura
+                break;
+        }
+        
+        input_condition[strcspn(input_condition, "\n")] = 0;
+        condition = atoi(input_condition); // Converte a string lida para inteiro
 
         if (condition == 1){
 
-            printf("\nDigite o CPF (11 digitos): ");
+            printf("\nDigite o CPF do paciente a ser chamado: ");
             fgets(cpf, 12, stdin);
             cpf[strcspn(cpf, "\n")] = 0;
-            /*
-            if (strlen(cpf) != 11){
-                printf("\nERRO: O CPF deve ter 11 digitos. Cadastro cancelado.\n");
-                return f;
-            }
-            */
+
+            Paciente* pacienteCadastrado = NULL;
+            Paciente* temp = lista; 
+
             while (temp != NULL) {
                 if (strcmp(temp->CPF, cpf) == 0) {
-                    
-                    paciente = temp;
-                    printf("\n--- Paciente %s:\n", posicao);
-                    printf("Nome: %s\n", temp->nome);
-                    printf("Idade: %d\n", temp->idade);
-                    printf("Prioridade: %s\n", temp->prioridade);
-                    break;
-
+                pacienteCadastrado = temp;
+                break;
                 }
-                posicao++;
                 temp = temp->prox;
             }
 
-            if (paciente != NULL) {
-                enfileirarSimples(f, paciente); 
-                printf("\n>>> Paciente %s adicionado a fila).\n", paciente->nome);
+            if (pacienteCadastrado != NULL) {
+                        // Cria a CÓPIA do nó para a Fila (como corrigido anteriormente)
+                Paciente* novoNoFila = criarNo(
+                    pacienteCadastrado->nome, 
+                    pacienteCadastrado->idade, 
+                    pacienteCadastrado->CPF);
+
+                enfileirarSimples(f, novoNoFila); 
+                printf("\n>>> Paciente %s adicionado à fila de atendimento.\n", pacienteCadastrado->nome);
+                visualizarFilaSimples(f);
             } else {
-                printf("\n> ERRO: Paciente com CPF %s nao encontrado.\n", cpf);
-            }
-
-
-            printf("\nDeseja chamar outro paciente?\n");
-            printf("(1). Sim -- (2). Não: ");
-            scanf("%d", &condition);
-            while (getchar() != '\n');
-
-            if (condition == 1){
-                continue;
-            } else if (condition == 2){
-                printf("\nRetornando ao menu principal...\n");
-                return f;
-            } else {
-                printf("\n [Erro na Solicitação]\n");
-                break;
+                printf("\n> ERRO: Paciente com CPF %s não encontrado nos cadastros.\n", cpf);
             }
 
         } else if (condition == 2){
-            printf("\nRetornando ao menu principal...\n");
-            return f;
+        printf("\nRetornando ao menu principal...\n");
+        return f;
         } else {
-            printf("\n [Erro na Solicitação]\n");
-            break;
-        }
-
-        
-        printf("\nDeseja chamar outro paciente?\n");
-        printf("(1). Sim -- (2). Não: ");
-        scanf("%d", &condition);
-        while (getchar() != '\n');
-
-        if (condition == 1){
-            continue;
-        } else if (condition == 2){
-            printf("\nRetornando ao menu principal...\n");
-            return f;
-        } else {
-            printf("\n [Erro na Solicitação]\n");
-            break;
+        printf("\n [Erro na Solicitação. Digite 1 ou 2.]\n");
         }
 
     }while(condition!=2);
 
+        return f; 
 }
-// 
+
+void finalizarAtendimento(Pilha* p, Fila* f){
+    
+    printf("\n\n~~~~~~~~~~ FINALIZAR ATENDIMENTO ~~~~~~~~~~\n");
+    
+
+    if (f == NULL || f->inicio == NULL) {
+        printf("> Não há pacientes na fila de atendimento.\n");
+        return;
+    }
+        
+    Paciente* atendido = desenfileirarSimples(f); 
+
+    // if (sePilhaCheia(p)){
+    //     free(p->registro[0]);
+    //     for(int i = 0 ; i < p->capacidade-1; i++){
+    //         p->registro[i] = p->registro[i + 1];
+    //     }
+    // }
+
+    if (atendido != NULL) {
+        // 2. Empilha o paciente no Histórico (utilizando a Pilha)
+        empilhar(p, atendido);
+        printf("\n>>> Atendimento de %s finalizado e adicionado ao Histórico.\n", atendido->nome);
+    } 
+  
+}
+
 
 //---------------------------------------------------------------
-//                        CHAMADAS
+//                          CHAMADAS
 //---------------------------------------------------------------
 
 void iniciarSistema(){
     int option;
     Paciente *listaDePacientes = NULL;
     Fila *gerenciadorDeFila = criarFila();
-    Pilha *gerenciadorPilha= criarPilha(20);
+    Pilha *gerenciadorPilha= criarPilha(2);
     
     do{
         menu();
@@ -438,11 +461,11 @@ void iniciarSistema(){
             chamarParaFila(gerenciadorDeFila, listaDePacientes);
             break;
         case 5:
-            visualizarHistorico(gerenciadorPilha);
+            finalizarAtendimento(gerenciadorPilha, gerenciadorDeFila);
             break; 
         case 6:
-            printf("\nNADA\n");
-            break;    
+            visualizarHistorico(gerenciadorPilha);   
+            break;
         case 7:
             printf("\nSaindo do programa...\n");
             break;
@@ -450,12 +473,11 @@ void iniciarSistema(){
             printf("\nOpcao invalida. Por favor, selecione uma opcao de 1 a 4.\n");
             break;
         }
-    } while (option != 6);
+    } while (option != 7);
 }
 
 int main(){   
     printf("\n----- Bem Vindo a SyClin -----");
     iniciarSistema();
-
     return 0;
 }

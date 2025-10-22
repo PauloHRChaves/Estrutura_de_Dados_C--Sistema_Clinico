@@ -9,14 +9,9 @@ typedef struct {
     int tamanho;
 } Fila;
 
-typedef struct {
-    Fila *filaPrioridade;
-    Fila *filaNormal;
-} FilaDuplaPrioridade;
 
 Fila* criarFila();
-FilaDuplaPrioridade* criarFilaDupla();
-void enfileirarSimples(Fila* f, Paciente* novoNo);
-void EnfileirarDuplo(FilaDuplaPrioridade* fd, char nome[], int idade, char cpf[]);
+int enfileirarSimples(Fila* f, Paciente* novoNo);
+Paciente* desenfileirarSimples(Fila* f);
 
 #endif

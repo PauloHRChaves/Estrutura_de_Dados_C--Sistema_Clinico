@@ -65,7 +65,7 @@ Siga estes passos para gerar o executável e rodar o projeto:
 - Execute o seguinte comando para compilar o código e gerar o arquivo main.exe na pasta build:
 
 ```
-gcc src/main.c services/chamadas.c services/lista_encadeada.c services/fila_fifo.c -I include -o build/Atendimento_v01  
+gcc src/main.c services/chamadas.c services/lista_encadeada.c services/fila_fifo.c services/pilha.c -I include -o build/Atendimento_v01   
 ```
 - E o comando seguinte para rodar o .exe:
 ```
