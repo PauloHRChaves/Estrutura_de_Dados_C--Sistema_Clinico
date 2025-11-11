@@ -30,16 +30,11 @@ int sePilhaCheia (Pilha *p){
 }
 
 Pilha* empilhar (Pilha *p, Paciente *atendido){
-    if (p == NULL){
-        printf("\n>>ERRO: Pilha não inicializada.\n");
-        return NULL;
-    }
-
     if (sePilhaCheia(p)){
-        printf("\n>>ATENÇÃO: Histórico cheio (Capacidade %d). O paciente mais antigo será removido para inserir o novo.\n", p->capacidade);
+        printf("\n>>ATENCAO: Historico cheio (Capacidade %d). O paciente mais antigo sera removido para inserir o novo.\n", p->capacidade);
         
         Paciente* maisAntigo = p->registro[0];
-        printf("<< Paciente %s (Mais Antigo) removido permanentemente do Histórico. >>\n", maisAntigo->nome);
+        printf("\n<< Paciente %s (Mais Antigo) removido permanentemente do Historico. >>\n", maisAntigo->nome);
         free(maisAntigo); 
         
 
@@ -52,40 +47,4 @@ Pilha* empilhar (Pilha *p, Paciente *atendido){
     }
 
 	p->registro [p->topo] = atendido;
-    printf("\n Paciente %s adicionado ao Histórico(Posição: %d).\n", 
-        atendido->nome, p->topo+1);
-
-}
-
-Paciente* desempilhar (Pilha *p ){
-    if (p == NULL || sePilhaVazia(p)) {
-        printf("\n> Nao ha pacientes no Historico para remover.\n");
-        return NULL;
-    }
-
-    Paciente* removido = p->registro[p->topo];
-    p->topo--;
-    printf("\n<< Paciente %s removido do Histórico. >>\n", removido->nome);
-    return removido;
-
-}
-
-void visualizarHistorico(Pilha *p){
-    printf("\n\n~~~~~~~~~~~ HISTÓRICO DE ATENDIMENTO ~~~~~~~~~~~\n");
-    // Verifica se a pilha existe ou está vazia.
-    if (p == NULL || sePilhaVazia(p)) {
-        printf("\n> O Historico esta vazio.\n");
-        return;
-    }
-    
-    printf("Capacidade: %d | Total de Atendidos: %d\n", p->capacidade, p->topo + 1);
-    
-    // Percorre a pilha do topo (mais recente) até a base (mais antigo)
-
-    for (int i = p->topo; i >= 0; i--) {
-        Paciente *atendido = p->registro[i];
-        printf("[%d] NOME: %s, CPF: %s, Prioridade: %s\n", 
-                i, atendido->nome, atendido->CPF, atendido->prioridade);
-    }
-    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 }

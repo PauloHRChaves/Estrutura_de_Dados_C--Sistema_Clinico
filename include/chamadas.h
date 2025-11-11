@@ -3,12 +3,15 @@
 
 #include "../include/fila_fifo.h"
 #include "../include/pilha.h"
-void menu();
 
-Paciente* cadastrar(Paciente *lista);
-Paciente* buscarCpf(Paciente* inicio);
-Fila* chamarParaFila(Fila* f, Paciente* lista);
-void visualizarFilaSimples(Fila* f);
+void menu();
+Paciente*cadastrar(Paciente *lista);
 void visualizarPacientes(Paciente *inicio);
-void finalizarAtendimento(Pilha* p, Fila* f);
+Paciente* buscarCpf(Paciente* inicio);
+void visualizarFilaSimples(Fila* f, const char* titulo);
+void visualizarFilaDupla(FilaDuplaPrioridade* fd);
+Paciente* chamarParaFila(FilaDuplaPrioridade* fd, Paciente* lista);
+void finalizarAtendimento(Pilha* p, FilaDuplaPrioridade* fd);
+void visualizarHistorico(Pilha *p);
+
 #endif

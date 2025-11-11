@@ -1,7 +1,6 @@
 #include "../include/fila_fifo.h"
 
-Fila* criarFila(){
-    // Cria uma fila vazia, sem inicio, sem fim, com tamanho 0.
+Fila* criarFila() {
     Fila* fila = (Fila*)malloc(sizeof(Fila));
 
     fila->inicio=NULL;
@@ -11,11 +10,27 @@ Fila* criarFila(){
     return fila;
 }
 
-int enfileirarSimples(Fila* f, Paciente* novoNo) {
-    if (f == NULL || novoNo == NULL) {
-        return 0; // FALHA
+FilaDuplaPrioridade* criarFilaDupla() {
+    FilaDuplaPrioridade* fd = (FilaDuplaPrioridade*)malloc(sizeof(FilaDuplaPrioridade));
+    
+    if (fd == NULL) {
+        return NULL;
     }
+    
+    fd->filaPrioridade = criarFila();
+    fd->filaNormal = criarFila();
+    
+    if (fd->filaPrioridade == NULL || fd->filaNormal == NULL) {
+        if (fd->filaPrioridade) free(fd->filaPrioridade);
+        if (fd->filaNormal) free(fd->filaNormal);
+        free(fd);
+        return NULL;
+    }
+    
+    return fd;
+}
 
+void enfileirarSimples(Fila* f, Paciente* novoNo) {
     if (f->inicio == NULL) {
         f->inicio = novoNo;
         f->fim = novoNo;
@@ -24,19 +39,24 @@ int enfileirarSimples(Fila* f, Paciente* novoNo) {
         f->fim = novoNo;
     }
     f->tamanho++;
-    return 1;
+}
+
+void enfileirarDuplo(FilaDuplaPrioridade* fd, char nome[], int idade, char cpf[]){
+    Paciente* novoNo = criarNo(nome, idade, cpf);
+
+    if (novoNo == NULL) return;
+
+    if (strcmp(novoNo->prioridade, "Sim") == 0) {
+        enfileirarSimples(fd->filaPrioridade, novoNo);
+    } else {
+        enfileirarSimples(fd->filaNormal, novoNo);
+    }
 }
 
 Paciente* desenfileirarSimples(Fila* f) {
-    if (f == NULL || f->inicio == NULL) {
-        printf("\n> Fila de atendimento vazia.\n");
-        return NULL;
-    }
-
     Paciente* removido = f->inicio;
-    f->inicio = f->inicio->prox; // O início passa a ser o próximo elemento
+    f->inicio = f->inicio->prox;
 
-    // Se a fila ficou vazia após a remoção, o fim também deve ser NULL
     if (f->inicio == NULL) {
         f->fim = NULL;
     }

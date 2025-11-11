@@ -4,18 +4,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-typedef struct paciente{
+typedef struct Paciente{
     char nome[51];
     int idade;
     char CPF[12];
     char prioridade[4];
 
-    struct paciente *prox;
+    bool naFila;
+
+    struct Paciente *prox;
+
 } Paciente;
 
 int listaVazia(Paciente *inicio);
 Paciente* criarNo(char nome[], int idade, char cpf[]);
-Paciente* inserirElementoComeco(Paciente *inicio, char nome[], int idade, char cpf[]);
+Paciente* inserirElementoFim(Paciente* lista, char nome[], int idade, char cpf[]);
 
 #endif

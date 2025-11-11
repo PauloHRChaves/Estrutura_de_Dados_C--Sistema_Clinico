@@ -1,11 +1,10 @@
 #include "../include/chamadas.h"
 
-
 void iniciarSistema(){
     int option;
     Paciente *listaDePacientes = NULL;
-    Fila *gerenciadorDeFila = criarFila();
-    Pilha *gerenciadorPilha= criarPilha(20);
+    FilaDuplaPrioridade *gerenciadorDeFilaDupla = criarFilaDupla();
+    Pilha *gerenciadorPilha= criarPilha(15);
     
     do{
         menu();
@@ -17,27 +16,25 @@ void iniciarSistema(){
             listaDePacientes = cadastrar(listaDePacientes);
             break;
         case 2:
-            visualizarPacientes(listaDePacientes);
+            visualizarPacientes(listaDePacientes); 
             break;
         case 3:
             buscarCpf(listaDePacientes);
             break;
         case 4:
-            //visualizarFilaDupla(gerenciadorFila);
-            chamarParaFila(gerenciadorDeFila, listaDePacientes);
-            break; 
+            chamarParaFila(gerenciadorDeFilaDupla, listaDePacientes);
+            break;
         case 5:
-            finalizarAtendimento(gerenciadorPilha, gerenciadorDeFila);
-            // printf("\nNADA\n");
-            break;    
+            finalizarAtendimento(gerenciadorPilha, gerenciadorDeFilaDupla);
+            break; 
         case 6:
-            visualizarHistorico(gerenciadorPilha); 
+            visualizarHistorico(gerenciadorPilha);   
             break;
         case 7:
             printf("\nSaindo do programa...\n");
             break;
         default:
-            printf("\nOpcao invalida. Por favor, selecione uma opcao de 1 a 4.\n");
+            printf("\n> Opcao invalida. Por favor, selecione uma opcao de 1 a 7.\n");
             break;
         }
     } while (option != 7);

@@ -13,6 +13,5 @@ Pilha* criarPilha(int capacidade);
 int sePilhaVazia(Pilha *p);
 int sePilhaCheia(Pilha *p);
 Pilha* empilhar (Pilha *p, Paciente *atendido);
-void visualizarHistorico(Pilha *p);
 
 #endif

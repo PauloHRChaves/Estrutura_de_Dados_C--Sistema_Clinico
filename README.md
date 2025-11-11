@@ -1,48 +1,16 @@
 # Trabalho - Estrutura de Dados
 
-Este projeto é um trabalho proposto pelo professor Pedro Kilansky na disciplina de **Estrutura de Dados** do Centro Universitário Uniruy Wyden.
-
-O proposito visa o aprendizado de algoritimos e estruturas complexas no cotidiano da programação.
-
-### Membros do Trabalho:
-
-<table>
-  <thead>
-    <tr>
-      <th>Nome</th>
-      <th>Matrícula</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Sinézio da Silva Ramos Junior</td>
-      <td>2023-----081</td>
-    </tr>
-    <tr>
-<<<<<<< HEAD
-      <td>Erick Mota Macedo da Silva</td>
-      <td>202503032701</td>
-=======
-      <td>Paulo Henrique R. Chaves</td>
-      <td>2023-----308</td>
->>>>>>> 9157c1772786b0ef1320975f488397bf01e53687
-    </tr>
-    <tr>
-      <td>Fulano de tal</td>
-      <td>Matricula de fulano</td>
-    </tr>
-  </tbody>
-</table>
+Este projeto é um trabalho proposto na disciplina de **Estrutura de Dados**.
 
 ## Estrutura do Projeto
 
 Este projeto está organizado da seguinte forma:
 
-- **build/:** Contém o arquivo executável main.exe que é gerado após a compilação do código-fonte.
+- **build/:** Contém o arquivo executável .exe que é gerado após a compilação do código-fonte.
 
 - **include/:** Armazena os arquivos de cabeçalho (.h), que declaram funções e estruturas usadas no projeto.
 
-- **source/:** Contém os arquivos de código-fonte (.cpp), onde a lógica principal do programa é implementada.
+- **source/:** Contém os arquivos de código-fonte (.c), onde a lógica principal do programa é implementada.
 
 ## Como Configurar o Ambiente de Desenvolvimento
 
@@ -58,21 +26,19 @@ Essa extensão é essencial para a compilação e depuração de projetos C e C+
 
 ## Como Compilar e Executar o Código
 
-Siga estes passos para gerar o executável e rodar o projeto:
-
-- Abra o terminal integrado do VS Code.
-
-- Execute o seguinte comando para compilar o código e gerar o arquivo main.exe na pasta build:
+Execute o seguinte comando para compilar o código modularizado e gerar o arquivo .exe na pasta build:
 
 ```
-gcc src/main.c services/chamadas.c services/lista_encadeada.c services/fila_fifo.c services/pilha.c -I include -o build/Atendimento_v01   
+gcc src/main.c services/chamadas.c services/lista_encadeada.c services/fila_fifo.c services/pilha.c -I include -o build/SyClin_v1  
 ```
-- E o comando seguinte para rodar o .exe:
+E o comando seguinte para rodar o .exe:
 ```
-<<<<<<< HEAD
-./build/main.exe
+./build/SyClin_v1
 ```
-=======
-./build/Debug/Atendimento_v01
+Ou simplesmente compile e rode o arquivo monolito:
 ```
->>>>>>> 9157c1772786b0ef1320975f488397bf01e53687
+gcc SyClin.c -o SyClin
+```
+```
+./SyClin
+```
