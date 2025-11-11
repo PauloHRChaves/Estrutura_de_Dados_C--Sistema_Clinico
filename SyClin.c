@@ -1,4 +1,214 @@
-#include "chamadas.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+//---------------------------------------------------------------
+//                       LISTA ENCADEADA
+//---------------------------------------------------------------
+
+typedef struct Paciente{
+    char nome[51];
+    int idade;
+    char CPF[12];
+    char prioridade[4];
+
+    bool naFila;
+
+    struct Paciente *prox;
+
+} Paciente;
+
+int listaVazia(Paciente *lista) {
+    return lista == NULL;
+}
+
+Paciente* criarNo(char nome[], int idade, char cpf[]){
+    Paciente* novoNo = (Paciente*)malloc(sizeof(Paciente));
+
+    strcpy(novoNo->nome, nome);
+    novoNo->idade = idade;
+    strcpy(novoNo->CPF, cpf);
+
+    if (idade >= 50) {
+        strcpy(novoNo->prioridade, "Sim");
+    } else {
+        strcpy(novoNo->prioridade, "Nao");
+    }
+
+    novoNo->naFila = false;
+    
+    novoNo->prox = NULL;
+    return novoNo;
+}
+
+// Paciente* inserirElementoComeco(Paciente* lista, char nome[], int idade, char cpf[]){
+//     Paciente* novoNo = criarNo(nome, idade, cpf);
+//     novoNo->prox = lista;
+//     return novoNo;
+// }
+
+Paciente* inserirElementoFim(Paciente* lista, char nome[], int idade, char cpf[]){
+    Paciente* novoNo = criarNo(nome, idade, cpf);
+
+    if (listaVazia(lista)) {
+        return novoNo;
+    }
+    
+    Paciente* temp = lista;
+    while (temp->prox != NULL) {
+        temp = temp->prox;
+    }
+    
+    temp->prox = novoNo;
+    
+    return lista;
+}
+
+//---------------------------------------------------------------
+//                           FILA
+//---------------------------------------------------------------
+
+typedef struct {
+    Paciente *inicio; 
+    Paciente *fim;
+    int tamanho;
+} Fila;
+
+typedef struct {
+    Fila *filaPrioridade;
+    Fila *filaNormal;
+} FilaDuplaPrioridade;
+
+Fila* criarFila() {
+    Fila* fila = (Fila*)malloc(sizeof(Fila));
+
+    fila->inicio=NULL;
+    fila->fim=NULL;
+    fila->tamanho=0;   
+    
+    return fila;
+}
+
+FilaDuplaPrioridade* criarFilaDupla() {
+    FilaDuplaPrioridade* fd = (FilaDuplaPrioridade*)malloc(sizeof(FilaDuplaPrioridade));
+    
+    if (fd == NULL) {
+        return NULL;
+    }
+    
+    fd->filaPrioridade = criarFila();
+    fd->filaNormal = criarFila();
+    
+    if (fd->filaPrioridade == NULL || fd->filaNormal == NULL) {
+        if (fd->filaPrioridade) free(fd->filaPrioridade);
+        if (fd->filaNormal) free(fd->filaNormal);
+        free(fd);
+        return NULL;
+    }
+    
+    return fd;
+}
+
+void enfileirarSimples(Fila* f, Paciente* novoNo) {
+    if (f->inicio == NULL) {
+        f->inicio = novoNo;
+        f->fim = novoNo;
+    } else {
+        f->fim->prox = novoNo;
+        f->fim = novoNo;
+    }
+    f->tamanho++;
+}
+
+void enfileirarDuplo(FilaDuplaPrioridade* fd, char nome[], int idade, char cpf[]){
+    Paciente* novoNo = criarNo(nome, idade, cpf);
+
+    if (novoNo == NULL) return;
+
+    if (strcmp(novoNo->prioridade, "Sim") == 0) {
+        enfileirarSimples(fd->filaPrioridade, novoNo);
+    } else {
+        enfileirarSimples(fd->filaNormal, novoNo);
+    }
+}
+
+Paciente* desenfileirarSimples(Fila* f) {
+    Paciente* removido = f->inicio;
+    f->inicio = f->inicio->prox;
+
+    if (f->inicio == NULL) {
+        f->fim = NULL;
+    }
+
+    f->tamanho--;
+    
+    printf("\n<< Paciente %s removido da Fila. >>\n", removido->nome);
+    return removido;
+}
+
+//---------------------------------------------------------------
+//                           PILHA
+//---------------------------------------------------------------
+
+typedef struct{
+	int topo; 
+	int capacidade;
+	Paciente **registro;
+} Pilha;
+
+Pilha* criarPilha(int capacidade){
+    Pilha* p = (Pilha*)malloc(sizeof(Pilha));
+    if (p == NULL) return NULL;
+
+    p->registro = (Paciente**)malloc(capacidade*sizeof(Paciente*));
+    if(p->registro == NULL){
+        free(p);
+        return NULL;
+    }
+    p->topo = -1;
+    p->capacidade = capacidade;
+
+    return p;
+}
+
+int sePilhaVazia (Pilha *p){
+    if( p == NULL || p->topo == -1 ) {
+        return 1; 
+    }
+    return 0;   
+}
+
+int sePilhaCheia (Pilha *p){
+    if( p != NULL && p->topo == p->capacidade - 1 ) {
+            return 1; 
+        }
+    return 0; 
+}
+
+Pilha* empilhar (Pilha *p, Paciente *atendido){
+    if (sePilhaCheia(p)){
+        printf("\n>>ATENCAO: Historico cheio (Capacidade %d). O paciente mais antigo sera removido para inserir o novo.\n", p->capacidade);
+        
+        Paciente* maisAntigo = p->registro[0];
+        printf("\n<< Paciente %s (Mais Antigo) removido permanentemente do Historico. >>\n", maisAntigo->nome);
+        free(maisAntigo); 
+        
+
+        for (int i = 0; i < p->capacidade - 1; i++) {
+            p->registro[i] = p->registro[i + 1];
+        }
+
+    } else {
+        p->topo++;
+    }
+
+	p->registro [p->topo] = atendido;
+}
+
+//---------------------------------------------------------------
+//                       PARTE LÓGICA
+//---------------------------------------------------------------
 
 void menu() {
     printf("\n\n_________________ MENU _________________\n");
@@ -253,4 +463,55 @@ void visualizarHistorico(Pilha *p){
                 i, atendido->nome, atendido->CPF, atendido->prioridade);
     }
     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+}
+
+
+//---------------------------------------------------------------
+//                          CHAMADAS
+//---------------------------------------------------------------
+
+void iniciarSistema(){
+    int option;
+    Paciente *listaDePacientes = NULL;
+    FilaDuplaPrioridade *gerenciadorDeFilaDupla = criarFilaDupla();
+    Pilha *gerenciadorPilha= criarPilha(15);
+    
+    do{
+        menu();
+        scanf("%d", &option);
+        while (getchar() != '\n');
+
+        switch (option){
+        case 1:
+            listaDePacientes = cadastrar(listaDePacientes);
+            break;
+        case 2:
+            visualizarPacientes(listaDePacientes); 
+            break;
+        case 3:
+            buscarCpf(listaDePacientes);
+            break;
+        case 4:
+            chamarParaFila(gerenciadorDeFilaDupla, listaDePacientes);
+            break;
+        case 5:
+            finalizarAtendimento(gerenciadorPilha, gerenciadorDeFilaDupla);
+            break; 
+        case 6:
+            visualizarHistorico(gerenciadorPilha);   
+            break;
+        case 7:
+            printf("\nSaindo do programa...\n");
+            break;
+        default:
+            printf("\n> Opcao invalida. Por favor, selecione uma opcao de 1 a 7.\n");
+            break;
+        }
+    } while (option != 7);
+}
+
+int main(){   
+    printf("\n----- Bem Vindo a SyClin -----");
+    iniciarSistema();
+    return 0;
 }

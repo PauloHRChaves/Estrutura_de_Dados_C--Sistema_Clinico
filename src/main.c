@@ -3,7 +3,8 @@
 void iniciarSistema(){
     int option;
     Paciente *listaDePacientes = NULL;
-    FilaDuplaPrioridade* gerenciadorFila=NULL;
+    FilaDuplaPrioridade *gerenciadorDeFilaDupla = criarFilaDupla();
+    Pilha *gerenciadorPilha= criarPilha(15);
     
     do{
         menu();
@@ -12,28 +13,31 @@ void iniciarSistema(){
 
         switch (option){
         case 1:
-            listaDePacientes = cadastrar(listaDePacientes, &gerenciadorFila);
+            listaDePacientes = cadastrar(listaDePacientes);
             break;
         case 2:
-            visualizarPacientes(listaDePacientes);
+            visualizarPacientes(listaDePacientes); 
             break;
         case 3:
             buscarCpf(listaDePacientes);
             break;
         case 4:
-            visualizarFilaDupla(gerenciadorFila);
-            break; 
+            chamarParaFila(gerenciadorDeFilaDupla, listaDePacientes);
+            break;
         case 5:
-            printf("\nNADA\n");
-            break;    
+            finalizarAtendimento(gerenciadorPilha, gerenciadorDeFilaDupla);
+            break; 
         case 6:
+            visualizarHistorico(gerenciadorPilha);   
+            break;
+        case 7:
             printf("\nSaindo do programa...\n");
             break;
         default:
-            printf("\nOpcao invalida. Por favor, selecione uma opcao de 1 a 4.\n");
+            printf("\n> Opcao invalida. Por favor, selecione uma opcao de 1 a 7.\n");
             break;
         }
-    } while (option != 6);
+    } while (option != 7);
 }
 
 int main(){   
