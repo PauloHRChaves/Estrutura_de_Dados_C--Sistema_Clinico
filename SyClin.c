@@ -47,12 +47,6 @@ Paciente* criarNo(char nome[], int idade, char cpf[]){
     return novoNo;
 }
 
-// Paciente* inserirElementoComeco(Paciente* lista, char nome[], int idade, char cpf[]){
-//     Paciente* novoNo = criarNo(nome, idade, cpf);
-//     novoNo->prox = lista;
-//     return novoNo;
-// }
-
 // Inserir um NÓ no final da lista
 Paciente* inserirElementoFim(Paciente* head, char nome[], int idade, char cpf[]){
     Paciente* novoNo = criarNo(nome, idade, cpf);
@@ -200,7 +194,7 @@ typedef struct{
 	int topo; 
 	int capacidade;
 
-    // 'registro' armazena uma coleção de Paciente* (ponteiros para Paciente)
+    // 'registro' armazena uma coleção de ponteiros para 'Paciente'
 	Paciente **registro;
 } Pilha;
 
@@ -209,9 +203,10 @@ Pilha* criarPilha(int capacidade){
     // Aloca memória para a Pilha em si
     Pilha* p = (Pilha*)malloc(sizeof(Pilha));
 
-    // Aloca memória para o array que que vai armazenar os ponteiros para 'Paciente'
+    // Aloca memória para o array que vai armazenar os ponteiros para 'Paciente'
     p->registro = (Paciente**)malloc(capacidade*sizeof(Paciente*));
 
+    // Se topo começar em 0 ao adicionar um 'Paciente' ele seria adicionado no indice 1 e o indice 0 estaria vazio
     p->topo = -1;
     p->capacidade = capacidade;
 
@@ -232,15 +227,17 @@ int sePilhaCheia (Pilha *p){
     return 0; 
 }
 
+// Acrescentando Paciente na pilha
 Pilha* empilhar (Pilha *p, Paciente *atendido){
     if (sePilhaCheia(p)){
         printf("\n>>ATENCAO: Historico cheio (Capacidade %d). O paciente mais antigo sera removido para inserir o novo.\n", p->capacidade);
         
+        // removendo o primeiro Paciente que foi adicionado na Pilha
         Paciente* maisAntigo = p->registro[0];
         printf("\n<< Paciente %s (Mais Antigo) removido permanentemente do Historico. >>\n", maisAntigo->nome);
         free(maisAntigo); 
         
-
+       //  movendo todos os ponteiros de Paciente uma posição para a esquerda
         for (int i = 0; i < p->capacidade - 1; i++) {
             p->registro[i] = p->registro[i + 1];
         }
@@ -299,11 +296,6 @@ Paciente*cadastrar(Paciente *lista) {
     printf("Digite o CPF (11 digitos): ");
     fgets(cpf, 12, stdin);
     cpf[strcspn(cpf, "\n")] = 0;
-    
-    // if (strlen(cpf) != 11){
-    //     printf("\n> ERRO: O CPF deve ter 11 digitos. Cadastro cancelado.\n");
-    //     return lista;
-    // }
 
     // ---------------------------------------------
     Paciente* pacienteExistente = buscarPaciente(lista, cpf);
@@ -519,7 +511,7 @@ void finalizarAtendimento(Pilha* p, FilaDuplaPrioridade* fd, Paciente** listaDeP
         printf(">>> Paciente %s removido da lista de cadastros.\n", cpfParaRemover);
 
         printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-        visualizarFilaDupla(fd);
+        // visualizarFilaDupla(fd);
     }
 }
 
